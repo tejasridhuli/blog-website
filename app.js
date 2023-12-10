@@ -50,16 +50,24 @@ app.post('/compose', async (req, res) => {
 });
 
 // Post Route
-app.get('/posts/:postId', (req, res) => {
-  const requestedPostId = req.params.postId;
+app.get('/posts/:postId', async (req, res) => {
+  try {
+    const requestedPostId = req.params.postId;
 
-  Post.findOne({ _id: requestedPostId }, (err, post) => {
-    if (err) {
-      console.error(err);
-    } else {
-      res.render('post', { post: post });
+    const post = await Post.findOne({ _id: requestedPostId }).exec();
+
+    if (!post) {
+      // Handle case where post is not found
+      res.status(404).send('Post not found');
+      return;
     }
-  });
+
+    res.render('post', { post: post });
+  } catch (err) {
+    console.error(err);
+    // Handle other errors as needed
+    res.status(500).send('Internal Server Error');
+  }
 });
 
 // Start Server
